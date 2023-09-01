@@ -35,25 +35,25 @@ This will add the following functions to MyRepo:
   alias MyApp.Accounts.User
 
   # returns the last inserted record
-  MyRepo.last(User) 
+  MyRepo.last(User)
 
   # returns a count of available records
-  MyRepo.count(User) 
+  MyRepo.count(User)
 
   # returns a sum of the specified field
   MyRepo.sum(User, :score)
-  
+
   # sets deleted_at field to current time
   MyRepo.trash(%User{})
-
-  # set primary key sequence to max value + 1
-  MyRepo.reset_pkey("users")
 
   # truncate table and restart identity
   MyRepo.truncate("users")
 
-  
+  # set primary key sequence to max value + 1
+  MyRepo.reset_pkey("users")
 
+  # reset primary key on all tables (ONLY TO USE IN DEV/TEST SEEDS!)
+  MyRepo.reset_all_pkeys()
 ```
 
 
@@ -96,9 +96,11 @@ usage:
     field :role, MyEctoTypes.UserRole
     ...
   end
-  
+
   %User.create(role: :admin ...)
 ```
+
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/bonf_common>.

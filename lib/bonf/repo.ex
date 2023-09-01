@@ -25,6 +25,26 @@ defmodule Bonf.Repo do
       def truncate(table_name) when is_binary(table_name) do
         Ecto.Adapters.SQL.query(__MODULE__, "TRUNCATE #{table_name} RESTART IDENTITY")
       end
+
+      def reset_all_pkeys do
+        query = """
+          SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
+        """
+
+        %Postgrex.Result{rows: rows} = Ecto.Adapters.SQL.query!(Vox.Repo, query)
+
+        blacklist = [
+          "pg_buffercache",
+          "pg_stat_statements",
+          "ar_internal_metadata",
+          "schema_migrations"
+        ]
+
+        rows
+        |> Enum.flat_map(& &1)
+        |> Enum.reject(&(&1 in blacklist))
+        |> Enum.each(&__MODULE__.reset_pkey/1)
+      end
     end
   end
 end

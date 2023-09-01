@@ -15,7 +15,8 @@ defmodule Bonf.RepoTest do
     assert function_exported?(MyRepo, :sum, 2)
     assert function_exported?(MyRepo, :last, 1)
     assert function_exported?(MyRepo, :trash, 1)
-    assert function_exported?(MyRepo, :reset_pkey, 1)
     assert function_exported?(MyRepo, :truncate, 1)
+    assert function_exported?(MyRepo, :reset_pkey, 1)
+    assert function_exported?(MyRepo, :reset_all_pkeys, 0)
   end
 end
