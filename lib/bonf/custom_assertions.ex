@@ -15,4 +15,10 @@ defmodule Bonf.CustomAssertions do
       assert_difference(unquote(count_fn), 0, unquote(run_fn))
     end
   end
+
+  def assert_equal_dt(a, b) do
+    a = a |> DateTime.truncate(:second)
+    b = b |> DateTime.truncate(:second)
+    DateTime.diff(a, b) <= 1
+  end
 end
