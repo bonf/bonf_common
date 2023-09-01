@@ -27,11 +27,12 @@ defmodule Bonf.Repo do
       end
 
       def reset_all_pkeys do
-        query = """
+        sql = """
           SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
         """
 
-        %Postgrex.Result{rows: rows} = Ecto.Adapters.SQL.query!(Vox.Repo, query)
+        # %Postgrex.Result{rows: rows} = Ecto.Adapters.SQL.query!(__MODULE__, query)
+        %Postgrex.Result{rows: rows} = query(sql)
 
         blacklist = [
           "pg_buffercache",
@@ -43,7 +44,7 @@ defmodule Bonf.Repo do
         rows
         |> Enum.flat_map(& &1)
         |> Enum.reject(&(&1 in blacklist))
-        |> Enum.each(&__MODULE__.reset_pkey/1)
+        |> Enum.each(&reset_pkey/1)
       end
     end
   end
