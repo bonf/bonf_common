@@ -31,8 +31,7 @@ defmodule Bonf.Repo do
           SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
         """
 
-        # %Postgrex.Result{rows: rows} = Ecto.Adapters.SQL.query!(__MODULE__, query)
-        %Postgrex.Result{rows: rows} = query(sql)
+        %Postgrex.Result{rows: rows} = query!(sql)
 
         blacklist = [
           "pg_buffercache",
