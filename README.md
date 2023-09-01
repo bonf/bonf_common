@@ -101,6 +101,41 @@ usage:
 ```
 
 
+## Custom Assertions
+
+Custom assertions for tests
+
+```elixir
+  ...
+  import Bonf.CustomAssertions
+  ...
+```
+
+#### assert_difference
+
+```elixir
+
+  assert_difference(count_items(), -1, fn ->
+    Admin.delete_item(item)
+  end)
+
+  assert_no_difference(count_items(), -1, fn ->
+    Admin.insert_item(invalid_attrs)
+  end)
+
+```
+
+#### assert_equal_dt
+
+```elixir
+
+  assert_equal_dt(
+    res.expires_at,
+    DateTime.utc_now() |> DateTime.add(30 * 60)
+  )
+```
+
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/bonf_common>.
