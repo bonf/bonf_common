@@ -1,4 +1,4 @@
-defmodule Buzz.SoftDelete do
+defmodule Bonf.SoftDelete do
   defmacro __using__(opts) do
     repo = Keyword.fetch!(opts, :repo)
 

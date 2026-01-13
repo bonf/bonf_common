@@ -29,7 +29,7 @@ end
 
 defmodule Bonf.Article do
   use Ecto.Schema
-  use Buzz.SoftDelete, repo: Bonf.TestRepo
+  use Bonf.SoftDelete, repo: Bonf.TestRepo
 
   schema "articles" do
     field(:title, :string)
@@ -45,7 +45,7 @@ end
 
 defmodule Bonf.Tag do
   use Ecto.Schema
-  use Buzz.SoftDelete, repo: Bonf.TestRepo
+  use Bonf.SoftDelete, repo: Bonf.TestRepo
 
   schema "tags" do
     field(:name, :string)

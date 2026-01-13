@@ -236,7 +236,7 @@ recent_active =
 {:ok, recovered_post} = Post.recover(deleted_post)
 ```
 
-### Buzz.SoftDelete
+### Bonf.SoftDelete
 
 Timestamp-based soft delete using a `deleted_at` field. Provides more flexibility for audit trails and date-based queries.
 
@@ -247,7 +247,7 @@ Add a `deleted_at` timestamp field to your schema:
 ```elixir
 defmodule MyApp.Article do
   use Ecto.Schema
-  use Buzz.SoftDelete, repo: MyApp.Repo
+  use Bonf.SoftDelete, repo: MyApp.Repo
 
   schema "articles" do
     field :title, :string
@@ -298,7 +298,7 @@ last_month_deletions =
 **Which one to use?**
 
 - Use `Bonf.NaiveSoftDelete` for simple cases where you just need to mark records as deleted
-- Use `Buzz.SoftDelete` when you need:
+- Use `Bonf.SoftDelete` when you need:
   - Audit trails showing when records were deleted
   - Date-based queries on deletion time
   - Partial unique indexes (unique only for active records)

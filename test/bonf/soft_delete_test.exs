@@ -1,4 +1,4 @@
-defmodule Buzz.SoftDeleteTest do
+defmodule Bonf.SoftDeleteTest do
   use Bonf.DataCase, async: true
 
   alias Bonf.Article
