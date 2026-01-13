@@ -7,8 +7,12 @@ defmodule Buzz.SoftDeleteTest do
   describe "not_trashed/1" do
     test "returns only non-deleted records (deleted_at is nil)" do
       article1 = TestRepo.insert!(%Article{title: "Active Article", deleted_at: nil})
-      article2 = TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
-      _article3 = TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
+
+      _article2 =
+        TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      _article3 =
+        TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
 
       results = Article.not_trashed(Article) |> TestRepo.all()
 
@@ -24,7 +28,7 @@ defmodule Buzz.SoftDeleteTest do
 
       import Ecto.Query
 
-      query = from a in Article, where: a.title == "Article B"
+      query = from(a in Article, where: a.title == "Article B")
       results = Article.not_trashed(query) |> TestRepo.all()
 
       assert results == []
@@ -50,7 +54,9 @@ defmodule Buzz.SoftDeleteTest do
     end
 
     test "treats records with deleted_at timestamps in the future as deleted" do
-      future_time = DateTime.utc_now() |> DateTime.add(1000, :second) |> DateTime.truncate(:second)
+      future_time =
+        DateTime.utc_now() |> DateTime.add(1000, :second) |> DateTime.truncate(:second)
+
       TestRepo.insert!(%Article{title: "Future Delete", deleted_at: future_time})
       TestRepo.insert!(%Article{title: "Active", deleted_at: nil})
 
@@ -64,13 +70,19 @@ defmodule Buzz.SoftDeleteTest do
   describe "only_trashed/1" do
     test "returns only deleted records (deleted_at is not nil)" do
       _article1 = TestRepo.insert!(%Article{title: "Active Article", deleted_at: nil})
-      article2 = TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
-      article3 = TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
+
+      article2 =
+        TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      article3 =
+        TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
 
       results = Article.only_trashed(Article) |> TestRepo.all()
 
       assert length(results) == 2
-      assert Enum.map(results, & &1.id) |> Enum.sort() == [article2.id, article3.id] |> Enum.sort()
+
+      assert Enum.map(results, & &1.id) |> Enum.sort() ==
+               [article2.id, article3.id] |> Enum.sort()
     end
 
     test "works with custom queryable" do
@@ -79,7 +91,7 @@ defmodule Buzz.SoftDeleteTest do
 
       import Ecto.Query
 
-      query = from a in Article, where: a.title == "Article A"
+      query = from(a in Article, where: a.title == "Article A")
       results = Article.only_trashed(query) |> TestRepo.all()
 
       assert results == []
@@ -105,13 +117,18 @@ defmodule Buzz.SoftDeleteTest do
     end
 
     test "can order trashed records by deletion time" do
-      article1 = TestRepo.insert!(%Article{title: "First Deleted", deleted_at: ~U[2024-01-01 00:00:00Z]})
-      article2 = TestRepo.insert!(%Article{title: "Second Deleted", deleted_at: ~U[2024-02-01 00:00:00Z]})
-      article3 = TestRepo.insert!(%Article{title: "Third Deleted", deleted_at: ~U[2024-03-01 00:00:00Z]})
+      article1 =
+        TestRepo.insert!(%Article{title: "First Deleted", deleted_at: ~U[2024-01-01 00:00:00Z]})
+
+      article2 =
+        TestRepo.insert!(%Article{title: "Second Deleted", deleted_at: ~U[2024-02-01 00:00:00Z]})
+
+      article3 =
+        TestRepo.insert!(%Article{title: "Third Deleted", deleted_at: ~U[2024-03-01 00:00:00Z]})
 
       import Ecto.Query
 
-      results = 
+      results =
         Article
         |> Article.only_trashed()
         |> order_by([a], a.deleted_at)
@@ -150,7 +167,13 @@ defmodule Buzz.SoftDeleteTest do
     test "works with different schema (Tag)" do
       article = TestRepo.insert!(%Article{title: "Some Article", deleted_at: nil})
       deleted_time = ~U[2024-01-15 10:00:00Z]
-      tag = TestRepo.insert!(%Tag{name: "Deleted tag", article_id: article.id, deleted_at: deleted_time})
+
+      tag =
+        TestRepo.insert!(%Tag{
+          name: "Deleted tag",
+          article_id: article.id,
+          deleted_at: deleted_time
+        })
 
       assert tag.deleted_at == deleted_time
 
@@ -169,12 +192,13 @@ defmodule Buzz.SoftDeleteTest do
     end
 
     test "preserves all other fields when recovering" do
-      article = TestRepo.insert!(%Article{
-        title: "Important Article",
-        body: "Some content",
-        published: true,
-        deleted_at: ~U[2024-01-15 10:00:00Z]
-      })
+      article =
+        TestRepo.insert!(%Article{
+          title: "Important Article",
+          body: "Some content",
+          published: true,
+          deleted_at: ~U[2024-01-15 10:00:00Z]
+        })
 
       {:ok, recovered} = Article.recover(article)
 
@@ -189,8 +213,12 @@ defmodule Buzz.SoftDeleteTest do
     test "filtering and recovering workflow" do
       # Create some articles
       article1 = TestRepo.insert!(%Article{title: "Keep this", deleted_at: nil})
-      article2 = TestRepo.insert!(%Article{title: "Trash this", deleted_at: ~U[2024-01-15 10:00:00Z]})
-      article3 = TestRepo.insert!(%Article{title: "Trash too", deleted_at: ~U[2024-02-20 15:30:00Z]})
+
+      article2 =
+        TestRepo.insert!(%Article{title: "Trash this", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      article3 =
+        TestRepo.insert!(%Article{title: "Trash too", deleted_at: ~U[2024-02-20 15:30:00Z]})
 
       # Query only active articles
       active = Article.not_trashed(Article) |> TestRepo.all()
@@ -216,14 +244,20 @@ defmodule Buzz.SoftDeleteTest do
 
     test "works with associations" do
       article = TestRepo.insert!(%Article{title: "Article with tags", deleted_at: nil})
-      
+
       tag1 = TestRepo.insert!(%Tag{name: "Active tag", article_id: article.id, deleted_at: nil})
-      tag2 = TestRepo.insert!(%Tag{name: "Deleted tag", article_id: article.id, deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      tag2 =
+        TestRepo.insert!(%Tag{
+          name: "Deleted tag",
+          article_id: article.id,
+          deleted_at: ~U[2024-01-15 10:00:00Z]
+        })
 
       # Get only active tags
       import Ecto.Query
-      
-      active_tags = 
+
+      active_tags =
         from(t in Tag, where: t.article_id == ^article.id)
         |> Tag.not_trashed()
         |> TestRepo.all()
@@ -243,36 +277,36 @@ defmodule Buzz.SoftDeleteTest do
 
     test "soft delete with unique constraint (only active records)" do
       article = TestRepo.insert!(%Article{title: "Test Article", deleted_at: nil})
-      
+
       # Insert a tag
       tag1 = TestRepo.insert!(%Tag{name: "elixir", article_id: article.id, deleted_at: nil})
-      
+
       # Cannot insert duplicate active tag
       assert_raise Ecto.ConstraintError, fn ->
         TestRepo.insert!(%Tag{name: "elixir", article_id: article.id, deleted_at: nil})
       end
-      
+
       # Soft delete the first tag
-      tag1_deleted = 
+      tag1_deleted =
         tag1
         |> Ecto.Changeset.change(deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
         |> TestRepo.update!()
-      
+
       assert tag1_deleted.deleted_at != nil
-      
+
       # Now we can insert a new active tag with the same name
       tag2 = TestRepo.insert!(%Tag{name: "elixir", article_id: article.id, deleted_at: nil})
-      
+
       assert tag2.id != tag1.id
       assert tag2.name == "elixir"
       assert tag2.deleted_at == nil
-      
+
       # And we can have multiple deleted tags with the same name
-      _tag2_deleted = 
+      _tag2_deleted =
         tag2
         |> Ecto.Changeset.change(deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
         |> TestRepo.update!()
-      
+
       # Both deleted tags exist
       deleted_tags = Tag.only_trashed(Tag) |> TestRepo.all()
       assert length(deleted_tags) == 2
@@ -282,20 +316,25 @@ defmodule Buzz.SoftDeleteTest do
       # Create NaiveSoftDelete records (Posts with boolean)
       post = TestRepo.insert!(%Bonf.Post{title: "Post", deleted: false})
       TestRepo.insert!(%Bonf.Comment{body: "Comment", post_id: post.id, deleted: false})
-      
+
       # Create SoftDelete records (Articles with deleted_at)
       article = TestRepo.insert!(%Article{title: "Article", deleted_at: nil})
       TestRepo.insert!(%Tag{name: "Tag", article_id: article.id, deleted_at: nil})
-      
+
       # Both types work independently
       assert length(Bonf.Post.not_trashed() |> TestRepo.all()) == 1
       assert length(Article.not_trashed(Article) |> TestRepo.all()) == 1
     end
 
     test "recovering multiple records in a transaction" do
-      article1 = TestRepo.insert!(%Article{title: "Article 1", deleted_at: ~U[2024-01-15 10:00:00Z]})
-      article2 = TestRepo.insert!(%Article{title: "Article 2", deleted_at: ~U[2024-01-15 10:00:00Z]})
-      article3 = TestRepo.insert!(%Article{title: "Article 3", deleted_at: ~U[2024-01-15 10:00:00Z]})
+      article1 =
+        TestRepo.insert!(%Article{title: "Article 1", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      article2 =
+        TestRepo.insert!(%Article{title: "Article 2", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      article3 =
+        TestRepo.insert!(%Article{title: "Article 3", deleted_at: ~U[2024-01-15 10:00:00Z]})
 
       TestRepo.transaction(fn ->
         Article.recover(article1)
@@ -316,7 +355,7 @@ defmodule Buzz.SoftDeleteTest do
 
       import Ecto.Query
 
-      results = 
+      results =
         Article
         |> Article.only_trashed()
         |> where([a], a.deleted_at >= ^~U[2024-02-01 00:00:00Z])

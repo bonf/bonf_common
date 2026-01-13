@@ -10,3 +10,6 @@ config :bonf_common, Bonf.TestRepo,
   pool_size: 10
 
 config :bonf_common, ecto_repos: [Bonf.TestRepo]
+
+# Set log level to warning to hide SQL queries during tests
+config :logger, level: :warning

@@ -7,7 +7,7 @@ defmodule Bonf.NaiveSoftDeleteTest do
   describe "not_trashed/1" do
     test "returns only non-deleted records" do
       post1 = TestRepo.insert!(%Post{title: "Active Post", deleted: false})
-      post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
+      _post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
       _post3 = TestRepo.insert!(%Post{title: "Another Deleted", deleted: true})
 
       results = Post.not_trashed() |> TestRepo.all()
