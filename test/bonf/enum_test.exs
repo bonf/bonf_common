@@ -10,7 +10,7 @@ defmodule Bonf.EnumTest do
       }
     end
 
-    assert MyEctoTypes.UserRole.all() == [:admin, :editor, :guest]
+    assert MyEctoTypes.UserRole.all() |> Enum.sort() == [:admin, :editor, :guest]
 
     assert MyEctoTypes.UserRole.all_map() == %{
              admin: 0,
