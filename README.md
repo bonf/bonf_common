@@ -106,23 +106,51 @@ usage:
 Custom assertions for tests
 
 ```elixir
-  ...
-  import Bonf.CustomAssertions
-  ...
+defmodule MyApp.DataCase do
+  use ExUnit.CaseTemplate
+  use Bonf.CustomAssertions, repo: MyApp.Repo
+
+  # ... rest of your DataCase setup
+end
+```
+
+Or in individual test files:
+
+```elixir
+defmodule MyApp.SomeTest do
+  use ExUnit.Case
+  use Bonf.CustomAssertions, repo: MyApp.Repo
+
+  # ... your tests
+end
 ```
 
 #### assert_difference
 
-```elixir
+For counting function changes:
 
+```elixir
   assert_difference(count_items(), -1, fn ->
     Admin.delete_item(item)
   end)
 
-  assert_no_difference(count_items(), -1, fn ->
+  assert_no_difference(count_items(), fn ->
     Admin.insert_item(invalid_attrs)
   end)
+```
 
+For schema count changes (requires `use Bonf.CustomAssertions, repo: YourRepo`):
+
+```elixir
+  # Assert that one User and one Profile are created
+  assert_difference(%{User => 1, Profile => 1}, fn ->
+    MyApp.create_user_with_profile(attrs)
+  end)
+
+  # Assert that no records are changed
+  assert_no_difference([User, Profile], fn ->
+    MyApp.invalid_operation()
+  end)
 ```
 
 #### assert_equal_dt
