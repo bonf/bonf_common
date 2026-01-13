@@ -127,19 +127,7 @@ end
 
 #### assert_difference
 
-For counting function changes:
-
-```elixir
-  assert_difference(count_items(), -1, fn ->
-    Admin.delete_item(item)
-  end)
-
-  assert_no_difference(count_items(), fn ->
-    Admin.insert_item(invalid_attrs)
-  end)
-```
-
-For schema count changes (requires `use Bonf.CustomAssertions, repo: YourRepo`):
+For schema count changes (recommended - cleaner syntax):
 
 ```elixir
   # Assert that one User and one Profile are created
@@ -147,9 +135,35 @@ For schema count changes (requires `use Bonf.CustomAssertions, repo: YourRepo`):
     MyApp.create_user_with_profile(attrs)
   end)
 
+  # Assert that records are deleted
+  assert_difference(%{Item => -1}, fn ->
+    Admin.delete_item(item)
+  end)
+
   # Assert that no records are changed
   assert_no_difference([User, Profile], fn ->
     MyApp.invalid_operation()
+  end)
+```
+
+For custom counting logic (when you need more control):
+
+```elixir
+  # Define a helper function for clean syntax
+  defp count_items, do: Repo.aggregate(Item, :count)
+  defp count_active_users, do: Repo.aggregate(from(u in User, where: u.active), :count)
+
+  # Then use it with the capture operator
+  assert_difference(&count_items/0, 1, fn ->
+    Admin.create_item(attrs)
+  end)
+
+  assert_difference(&count_active_users/0, -1, fn ->
+    Users.deactivate_user(user)
+  end)
+
+  assert_no_difference(&count_items/0, fn ->
+    Admin.insert_item(invalid_attrs)
   end)
 ```
 
