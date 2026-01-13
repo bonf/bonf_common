@@ -164,7 +164,130 @@ For schema count changes (requires `use Bonf.CustomAssertions, repo: YourRepo`):
 ```
 
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/bonf_common>.
+## Soft Delete
+
+Two soft delete implementations are available depending on your needs.
+
+### Bonf.NaiveSoftDelete
+
+Simple boolean-based soft delete using a `deleted` field.
+
+**Setup:**
+
+Add a `deleted` boolean field to your schema:
+
+```elixir
+defmodule MyApp.Post do
+  use Ecto.Schema
+  use Bonf.NaiveSoftDelete, repo: MyApp.Repo
+
+  schema "posts" do
+    field :title, :string
+    field :deleted, :boolean, default: false
+    
+    timestamps()
+  end
+end
+```
+
+**Migration:**
+
+```elixir
+create table(:posts) do
+  add :title, :string
+  add :deleted, :boolean, default: false, null: false
+  
+  timestamps()
+end
+```
+
+**Usage:**
+
+```elixir
+# Query only active (not deleted) records
+active_posts = Post.not_trashed() |> Repo.all()
+
+# Query only deleted records
+deleted_posts = Post.only_trashed() |> Repo.all()
+
+# Works with custom queries
+import Ecto.Query
+
+recent_active = 
+  from(p in Post, where: p.inserted_at > ^days_ago(7))
+  |> Post.not_trashed()
+  |> Repo.all()
+
+# Recover a soft-deleted record
+{:ok, recovered_post} = Post.recover(deleted_post)
+```
+
+### Buzz.SoftDelete
+
+Timestamp-based soft delete using a `deleted_at` field. Provides more flexibility for audit trails and date-based queries.
+
+**Setup:**
+
+Add a `deleted_at` timestamp field to your schema:
+
+```elixir
+defmodule MyApp.Article do
+  use Ecto.Schema
+  use Buzz.SoftDelete, repo: MyApp.Repo
+
+  schema "articles" do
+    field :title, :string
+    field :deleted_at, :utc_datetime
+    
+    timestamps()
+  end
+end
+```
+
+**Migration:**
+
+```elixir
+create table(:articles) do
+  add :title, :string
+  add :deleted_at, :utc_datetime
+  
+  timestamps()
+end
+
+# Optional: Create partial unique index (only active records)
+create unique_index(:articles, [:slug], where: "deleted_at IS NULL")
+```
+
+**Usage:**
+
+```elixir
+# Query only active (not deleted) records
+active_articles = Article.not_trashed(Article) |> Repo.all()
+
+# Query only deleted records
+deleted_articles = Article.only_trashed(Article) |> Repo.all()
+
+# Query deleted within a date range
+import Ecto.Query
+
+last_month_deletions =
+  Article
+  |> Article.only_trashed()
+  |> where([a], a.deleted_at >= ^days_ago(30))
+  |> order_by([a], desc: a.deleted_at)
+  |> Repo.all()
+
+# Recover a soft-deleted record
+{:ok, recovered_article} = Article.recover(deleted_article)
+```
+
+**Which one to use?**
+
+- Use `Bonf.NaiveSoftDelete` for simple cases where you just need to mark records as deleted
+- Use `Buzz.SoftDelete` when you need:
+  - Audit trails showing when records were deleted
+  - Date-based queries on deletion time
+  - Partial unique indexes (unique only for active records)
+  - More flexibility for compliance and data retention requirements
+
 
