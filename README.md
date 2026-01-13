@@ -275,18 +275,20 @@ create unique_index(:articles, [:slug], where: "deleted_at IS NULL")
 **Usage:**
 
 ```elixir
-# Query only active (not deleted) records
+# Query only active (not deleted) records - queryable defaults to current module
+active_articles = Article.not_trashed() |> Repo.all()
+
+# Or explicitly pass a queryable
 active_articles = Article.not_trashed(Article) |> Repo.all()
 
 # Query only deleted records
-deleted_articles = Article.only_trashed(Article) |> Repo.all()
+deleted_articles = Article.only_trashed() |> Repo.all()
 
 # Query deleted within a date range
 import Ecto.Query
 
 last_month_deletions =
-  Article
-  |> Article.only_trashed()
+  Article.only_trashed()
   |> where([a], a.deleted_at >= ^days_ago(30))
   |> order_by([a], desc: a.deleted_at)
   |> Repo.all()

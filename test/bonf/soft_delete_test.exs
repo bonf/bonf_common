@@ -22,6 +22,19 @@ defmodule Bonf.SoftDeleteTest do
       assert hd(results).deleted_at == nil
     end
 
+    test "works without explicit queryable parameter (defaults to module)" do
+      article1 = TestRepo.insert!(%Article{title: "Active Article", deleted_at: nil})
+
+      _article2 =
+        TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      results = Article.not_trashed() |> TestRepo.all()
+
+      assert length(results) == 1
+      assert hd(results).id == article1.id
+      assert hd(results).title == "Active Article"
+    end
+
     test "works with custom queryable" do
       TestRepo.insert!(%Article{title: "Article A", deleted_at: nil})
       TestRepo.insert!(%Article{title: "Article B", deleted_at: ~U[2024-01-01 00:00:00Z]})
@@ -78,6 +91,23 @@ defmodule Bonf.SoftDeleteTest do
         TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
 
       results = Article.only_trashed(Article) |> TestRepo.all()
+
+      assert length(results) == 2
+
+      assert Enum.map(results, & &1.id) |> Enum.sort() ==
+               [article2.id, article3.id] |> Enum.sort()
+    end
+
+    test "works without explicit queryable parameter (defaults to module)" do
+      _article1 = TestRepo.insert!(%Article{title: "Active Article", deleted_at: nil})
+
+      article2 =
+        TestRepo.insert!(%Article{title: "Deleted Article", deleted_at: ~U[2024-01-15 10:00:00Z]})
+
+      article3 =
+        TestRepo.insert!(%Article{title: "Another Deleted", deleted_at: ~U[2024-02-20 15:30:00Z]})
+
+      results = Article.only_trashed() |> TestRepo.all()
 
       assert length(results) == 2
 

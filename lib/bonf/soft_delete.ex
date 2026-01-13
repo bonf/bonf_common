@@ -5,11 +5,11 @@ defmodule Bonf.SoftDelete do
     quote do
       import Ecto.Query, only: [where: 3]
 
-      def not_trashed(queryable) do
+      def not_trashed(queryable \\ __MODULE__) do
         where(queryable, [r], is_nil(r.deleted_at))
       end
 
-      def only_trashed(queryable) do
+      def only_trashed(queryable \\ __MODULE__) do
         where(queryable, [r], not is_nil(r.deleted_at))
       end
 

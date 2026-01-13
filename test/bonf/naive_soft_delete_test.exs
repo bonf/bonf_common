@@ -5,12 +5,23 @@ defmodule Bonf.NaiveSoftDeleteTest do
   alias Bonf.Comment
 
   describe "not_trashed/1" do
-    test "returns only non-deleted records" do
+    test "returns only non-deleted records (no parameter - defaults to module)" do
       post1 = TestRepo.insert!(%Post{title: "Active Post", deleted: false})
       _post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
       _post3 = TestRepo.insert!(%Post{title: "Another Deleted", deleted: true})
 
       results = Post.not_trashed() |> TestRepo.all()
+
+      assert length(results) == 1
+      assert hd(results).id == post1.id
+      assert hd(results).title == "Active Post"
+    end
+
+    test "returns only non-deleted records (with explicit module parameter)" do
+      post1 = TestRepo.insert!(%Post{title: "Active Post", deleted: false})
+      _post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
+
+      results = Post.not_trashed(Post) |> TestRepo.all()
 
       assert length(results) == 1
       assert hd(results).id == post1.id
@@ -50,7 +61,7 @@ defmodule Bonf.NaiveSoftDeleteTest do
   end
 
   describe "only_trashed/1" do
-    test "returns only deleted records" do
+    test "returns only deleted records (no parameter - defaults to module)" do
       _post1 = TestRepo.insert!(%Post{title: "Active Post", deleted: false})
       post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
       post3 = TestRepo.insert!(%Post{title: "Another Deleted", deleted: true})
@@ -59,6 +70,16 @@ defmodule Bonf.NaiveSoftDeleteTest do
 
       assert length(results) == 2
       assert Enum.map(results, & &1.id) |> Enum.sort() == [post2.id, post3.id] |> Enum.sort()
+    end
+
+    test "returns only deleted records (with explicit module parameter)" do
+      _post1 = TestRepo.insert!(%Post{title: "Active Post", deleted: false})
+      post2 = TestRepo.insert!(%Post{title: "Deleted Post", deleted: true})
+
+      results = Post.only_trashed(Post) |> TestRepo.all()
+
+      assert length(results) == 1
+      assert hd(results).id == post2.id
     end
 
     test "works with custom queryable" do
